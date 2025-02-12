@@ -1,23 +1,40 @@
-import 'package:firebase1/firebase_options.dart';
-import 'package:firebase1/login_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
+import 'providers/user_provider.dart';
+import 'screens/auth/login_screen.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Ensure binding before Firebase
+  WidgetsFlutterBinding
+      .ensureInitialized(); // Ensures Firebase initializes properly
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // If using FlutterFire CLI
+    options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp());
+
+  runApp(const MyApp());
 }
 
-//actual app starts here.
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Unif1',
-      home: LoginScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => UserProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Unif1',
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.system, // Adapts to system theme
+        home: const LoginScreen(),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+        },
+      ),
     );
   }
 }
