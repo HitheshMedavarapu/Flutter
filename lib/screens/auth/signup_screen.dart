@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import '../../redux/auth/auth_actions.dart';
+import '../../redux/auth/auth_state.dart';
 import '../home/home_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -10,11 +14,11 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -33,23 +37,47 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+      String uid = userCredential.user!.uid;
+      String email = userCredential.user!.email ?? "";
+      String name = _nameController.text.trim();
+
+      // 🔹 Save User to Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'uid': uid,
+        'name': name,
+        'email': email,
+        'profilePicture': "",
+        'friends': [],
+        'city': "",
+        'college': "",
+        'interests': [],
+        'preferences': [],
+      });
+
+      // 🔹 Dispatch Redux Action to Update Authentication State
+      StoreProvider.of<AppState>(context).dispatch(LoginAction(uid, email));
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = e.message;
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -62,6 +90,11 @@ class _SignupScreenState extends State<SignupScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: "Name"),
+            ),
+            const SizedBox(height: 10),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: "Email"),
@@ -91,12 +124,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     onPressed: _signUp,
                     child: const Text("Sign Up"),
                   ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Already have an account? Login"),
-            ),
           ],
         ),
       ),
