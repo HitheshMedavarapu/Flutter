@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
-import '../../providers/user_provider.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
+import '../../redux/app_state.dart';
+import '../../redux/actions.dart';
 import '../home/home_screen.dart';
 import 'signup_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -19,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  void _login() async {
+  void _login(BuildContext context) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -31,8 +34,11 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      await Provider.of<UserProvider>(context, listen: false).loadUserData();
+      final String userId = userCredential.user!.uid;
+      StoreProvider.of<AppState>(context).dispatch(SetUserAction(userId));
+      StoreProvider.of<AppState>(context).dispatch(fetchUserProfile);
 
+      // Navigate to home screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -69,15 +75,12 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 10),
             if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 20),
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-                    onPressed: _login,
+                    onPressed: () => _login(context),
                     child: const Text("Login"),
                   ),
             TextButton(
@@ -88,6 +91,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 );
               },
               child: const Text("Don't have an account? Sign Up"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ForgotPasswordScreen()),
+                );
+              },
+              child: const Text("Forgot Password?"),
             ),
           ],
         ),
