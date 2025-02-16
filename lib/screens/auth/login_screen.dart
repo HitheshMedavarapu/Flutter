@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import '../../redux/auth/auth_actions.dart';
-import '../../redux/auth/auth_state.dart';
+import 'package:redux/redux.dart';
+import '../../redux/app_state.dart';
+import '../../redux/actions.dart';
 import '../home/home_screen.dart';
+import 'signup_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -20,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  void _login() async {
+  void _login(BuildContext context) async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -32,52 +34,23 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      String uid = userCredential.user!.uid;
-      String email = userCredential.user!.email ?? "";
+      final String userId = userCredential.user!.uid;
+      StoreProvider.of<AppState>(context).dispatch(SetUserAction(userId));
+      StoreProvider.of<AppState>(context).dispatch(fetchUserProfile);
 
-      print("✅ Login Successful: $uid");
-
-      // 🔹 Fetch user data from Firestore
-      DocumentSnapshot<Map<String, dynamic>> userDoc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-      print("📌 Firestore Query UID: $uid");
-
-      if (userDoc.exists && userDoc.data() != null) {
-        print("✅ Firestore Data: ${userDoc.data()}");
-
-        // 🔹 Dispatch Redux Action to Update Authentication State
-        StoreProvider.of<AppState>(context).dispatch(LoginAction(uid, email));
-
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-          );
-        }
-      } else {
-        print("❌ Firestore user document not found!");
-        setState(() {
-          _errorMessage =
-              "User data not found in Firestore. Please sign up first.";
-        });
-      }
+      // Navigate to home screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
     } on FirebaseAuthException catch (e) {
-      print("❌ FirebaseAuthException: ${e.message}");
       setState(() {
         _errorMessage = e.message;
       });
-    } catch (e) {
-      print("❌ General Error: $e");
-      setState(() {
-        _errorMessage = "An error occurred. Please try again.";
-      });
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -102,17 +75,33 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 10),
             if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 20),
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-                    onPressed: _login,
+                    onPressed: () => _login(context),
                     child: const Text("Login"),
                   ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignupScreen()),
+                );
+              },
+              child: const Text("Don't have an account? Sign Up"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ForgotPasswordScreen()),
+                );
+              },
+              child: const Text("Forgot Password?"),
+            ),
           ],
         ),
       ),

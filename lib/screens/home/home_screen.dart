@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../chats/chats_screen.dart';
@@ -11,13 +10,15 @@ import 'package:flutter_redux/flutter_redux.dart';
 import '../../redux/auth/auth_state.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key})
+      : super(key: key); // Ensure constructor is marked as const
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 2; // Default is Home
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final List<Widget> _screens = [
     ChatsScreen(),
@@ -36,14 +37,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openSettings() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SettingsScreen()),
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
     );
   }
 
   void _openProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ProfileScreen()),
+      MaterialPageRoute(builder: (context) => const ProfileScreen()),
     );
   }
 

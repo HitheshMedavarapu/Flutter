@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'login_screen.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import '../../redux/auth/auth_actions.dart';
 import '../../redux/auth/auth_state.dart';
@@ -19,55 +20,62 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _isLoading = false;
   String? _errorMessage;
 
   void _signUp() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() {
-        _errorMessage = "Passwords do not match!";
-      });
-      return;
-    }
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
+    // Validate password match
+    if (_passwordController.text.trim() !=
+        _confirmPasswordController.text.trim()) {
+      setState(() {
+        _errorMessage = "Passwords do not match!";
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
+      // Create user in Firebase Auth
       UserCredential userCredential =
           await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      String uid = userCredential.user!.uid;
-      String email = userCredential.user!.email ?? "";
-      String name = _nameController.text.trim();
-
-      // 🔹 Save User to Firestore
-      await FirebaseFirestore.instance.collection('users').doc(uid).set({
-        'uid': uid,
-        'name': name,
-        'email': email,
-        'profilePicture': "",
-        'friends': [],
-        'city': "",
-        'college': "",
-        'interests': [],
-        'preferences': [],
+      // Save user data to Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'profilePicture': '',
+        'description': '',
+        'interests': '',
+        'city': '',
+        'college': '',
+        'preferences': '',
       });
 
-      // 🔹 Dispatch Redux Action to Update Authentication State
-      StoreProvider.of<AppState>(context).dispatch(LoginAction(uid, email));
+      // Force user logout after account creation
+      await _auth.signOut();
 
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
-      }
+      // Show success message and redirect to LoginScreen
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Account created successfully! Please log in.")),
+      );
+
+      // Navigate to LoginScreen and clear the stack
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false, // Removes all previous routes
+      );
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = e.message;
@@ -91,39 +99,37 @@ class _SignupScreenState extends State<SignupScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: "Name"),
-            ),
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: "Full Name")),
             const SizedBox(height: 10),
             TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: "Email"),
-            ),
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: "Email")),
             const SizedBox(height: 10),
             TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Password"),
-            ),
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: "Password")),
             const SizedBox(height: 10),
             TextField(
-              controller: _confirmPasswordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Confirm Password"),
-            ),
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration:
+                    const InputDecoration(labelText: "Re-enter Password")),
             const SizedBox(height: 10),
             if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 20),
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-                    onPressed: _signUp,
-                    child: const Text("Sign Up"),
-                  ),
+                    onPressed: _signUp, child: const Text("Sign Up")),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Go back to login screen
+              },
+              child: const Text("Already have an account? Login"),
+            ),
           ],
         ),
       ),
