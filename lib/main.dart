@@ -1,9 +1,11 @@
+import 'package:firebase1/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:provider/provider.dart';
 import 'firebase_options.dart';
-import 'providers/user_provider.dart';
 import 'screens/auth/login_screen.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'redux/store.dart';
+import 'redux/auth/auth_state.dart';
 
 void main() async {
   WidgetsFlutterBinding
@@ -12,28 +14,23 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => UserProvider()),
-      ],
+    return StoreProvider<AppState>(
+      store: store,
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Unif1',
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
-        themeMode: ThemeMode.system, // Adapts to system theme
-        home: const LoginScreen(),
-        routes: {
-          '/login': (context) => const LoginScreen(),
-        },
+        home: StoreConnector<AppState, bool>(
+          converter: (store) => store.state.authState.isAuthenticated,
+          builder: (context, isAuthenticated) {
+            return isAuthenticated ? HomeScreen() : LoginScreen();
+          },
+        ),
       ),
     );
   }

@@ -7,6 +7,8 @@ import '../group_chats/group_chats_screen.dart';
 import '../marketplace/marketplace_screen.dart';
 import '../maps/maps_screen.dart';
 import 'feed_screen.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import '../../redux/auth/auth_state.dart';
 
 class HomeScreen extends StatefulWidget {
   @override

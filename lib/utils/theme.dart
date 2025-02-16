@@ -1,40 +1,45 @@
 import 'package:flutter/material.dart';
-import 'constants.dart';
 
-class AppTheme {
-  static ThemeData lightTheme = ThemeData(
-    primaryColor: AppConstants.primaryColor,
-    scaffoldBackgroundColor: AppConstants.backgroundColor,
-    textTheme: const TextTheme(
-      bodyMedium: TextStyle(color: AppConstants.textColor),
+class AppThemes {
+  static final ThemeData lightTheme = ThemeData(
+    brightness: Brightness.light,
+    primaryColor: Colors.purple,
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.purple,
+      titleTextStyle: TextStyle(
+          color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+      iconTheme: IconThemeData(color: Colors.white),
     ),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppConstants.primaryColor,
-      foregroundColor: Colors.white,
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: Colors.purple,
+      unselectedItemColor: Colors.grey,
     ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppConstants.primaryColor,
-        foregroundColor: Colors.white,
-      ),
+    textTheme: TextTheme(
+      bodyLarge: TextStyle(color: Colors.black),
+      bodyMedium: TextStyle(color: Colors.black54),
     ),
   );
 
-  static ThemeData darkTheme = ThemeData.dark().copyWith(
-    primaryColor: AppConstants.primaryColor,
+  static final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: Colors.purple,
     scaffoldBackgroundColor: Colors.black,
-    textTheme: const TextTheme(
-      bodyMedium: TextStyle(color: Colors.white),
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.purple,
+      titleTextStyle: TextStyle(
+          color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+      iconTheme: IconThemeData(color: Colors.white),
     ),
-    appBarTheme: const AppBarTheme(
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
+      selectedItemColor: Colors.purple,
+      unselectedItemColor: Colors.grey,
     ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppConstants.primaryColor,
-        foregroundColor: Colors.white,
-      ),
+    textTheme: TextTheme(
+      bodyLarge: TextStyle(color: Colors.white),
+      bodyMedium: TextStyle(color: Colors.white70),
     ),
   );
 }

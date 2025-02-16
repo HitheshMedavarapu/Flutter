@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
-import '../../providers/user_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import '../../redux/auth/auth_actions.dart';
+import '../../redux/auth/auth_state.dart';
 import '../home/home_screen.dart';
-import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -31,20 +32,52 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      await Provider.of<UserProvider>(context, listen: false).loadUserData();
+      String uid = userCredential.user!.uid;
+      String email = userCredential.user!.email ?? "";
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-      );
+      print("✅ Login Successful: $uid");
+
+      // 🔹 Fetch user data from Firestore
+      DocumentSnapshot<Map<String, dynamic>> userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      print("📌 Firestore Query UID: $uid");
+
+      if (userDoc.exists && userDoc.data() != null) {
+        print("✅ Firestore Data: ${userDoc.data()}");
+
+        // 🔹 Dispatch Redux Action to Update Authentication State
+        StoreProvider.of<AppState>(context).dispatch(LoginAction(uid, email));
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        }
+      } else {
+        print("❌ Firestore user document not found!");
+        setState(() {
+          _errorMessage =
+              "User data not found in Firestore. Please sign up first.";
+        });
+      }
     } on FirebaseAuthException catch (e) {
+      print("❌ FirebaseAuthException: ${e.message}");
       setState(() {
         _errorMessage = e.message;
       });
-    } finally {
+    } catch (e) {
+      print("❌ General Error: $e");
       setState(() {
-        _isLoading = false;
+        _errorMessage = "An error occurred. Please try again.";
       });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -80,15 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _login,
                     child: const Text("Login"),
                   ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SignupScreen()),
-                );
-              },
-              child: const Text("Don't have an account? Sign Up"),
-            ),
           ],
         ),
       ),
