@@ -5,18 +5,7 @@ class AppThemes {
     brightness: Brightness.light,
     primaryColor: Colors.purple,
     scaffoldBackgroundColor: Colors.white,
-    appBarTheme: AppBarTheme(
-      backgroundColor: Colors.purple,
-      titleTextStyle: TextStyle(
-          color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-      iconTheme: IconThemeData(color: Colors.white),
-    ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Colors.white,
-      selectedItemColor: Colors.purple,
-      unselectedItemColor: Colors.grey,
-    ),
-    textTheme: TextTheme(
+    textTheme: const TextTheme(
       bodyLarge: TextStyle(color: Colors.black),
       bodyMedium: TextStyle(color: Colors.black54),
     ),
@@ -26,20 +15,20 @@ class AppThemes {
     brightness: Brightness.dark,
     primaryColor: Colors.purple,
     scaffoldBackgroundColor: Colors.black,
-    appBarTheme: AppBarTheme(
-      backgroundColor: Colors.purple,
-      titleTextStyle: TextStyle(
-          color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-      iconTheme: IconThemeData(color: Colors.white),
-    ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Colors.black,
-      selectedItemColor: Colors.purple,
-      unselectedItemColor: Colors.grey,
-    ),
-    textTheme: TextTheme(
+    textTheme: const TextTheme(
       bodyLarge: TextStyle(color: Colors.white),
       bodyMedium: TextStyle(color: Colors.white70),
     ),
   );
+
+  // 🎨 Background Gradient
+  static BoxDecoration backgroundGradient() {
+    return const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF6A0DAD), Color(0xFF4A148C)],
+      ),
+    );
+  }
 }
