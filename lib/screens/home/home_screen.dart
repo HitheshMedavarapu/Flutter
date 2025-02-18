@@ -6,10 +6,12 @@ import '../group_chats/group_chats_screen.dart';
 import '../marketplace/marketplace_screen.dart';
 import '../maps/maps_screen.dart';
 import 'feed_screen.dart';
-import '../../utils/theme.dart'; // ✅ Import theme
+import 'package:flutter_redux/flutter_redux.dart';
+import '../../redux/auth/auth_state.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({Key? key})
+      : super(key: key); // Ensure constructor is marked as const
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -48,8 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Unif1"),
@@ -75,13 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.map), label: "Maps"),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor:
-            theme.bottomNavigationBarTheme.selectedItemColor, // ✅ Theme applied
-        unselectedItemColor: theme
-            .bottomNavigationBarTheme.unselectedItemColor, // ✅ Theme applied
-        backgroundColor:
-            theme.bottomNavigationBarTheme.backgroundColor, // ✅ Theme applied
-        showUnselectedLabels: true,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
       ),
     );

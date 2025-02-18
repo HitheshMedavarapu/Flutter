@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../utils/theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -17,37 +15,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _promotions = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadTheme();
-  }
-
-  Future<void> _loadTheme() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _darkMode = prefs.getBool('darkMode') ?? false;
-    });
-  }
-
-  Future<void> _toggleDarkMode(bool value) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('darkMode', value);
-    setState(() {
-      _darkMode = value;
-    });
-
-    // ✅ Apply Theme Change
-    final brightness = value ? Brightness.dark : Brightness.light;
-    ThemeData newTheme = value ? AppThemes.darkTheme : AppThemes.lightTheme;
-
-    // ✅ Update MaterialApp theme dynamically
-    Navigator.of(context).pop(); // Close settings
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => SettingsScreen()),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +26,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SwitchListTile(
             title: const Text('Dark Mode'),
             value: _darkMode,
-            onChanged: _toggleDarkMode,
+            onChanged: (bool value) {
+              setState(() {
+                _darkMode = value;
+              });
+            },
           ),
           SwitchListTile(
             title: const Text('Chat Notifications'),
