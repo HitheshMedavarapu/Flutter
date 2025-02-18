@@ -8,7 +8,6 @@ import 'redux/reducers.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'utils/theme.dart'; // ✅ Import themes
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,9 +32,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Unif1',
-        theme: AppThemes.lightTheme, // ✅ Use custom theme
-        darkTheme: AppThemes.darkTheme, // ✅ Use custom dark theme
-        themeMode: ThemeMode.system, // ✅ Auto-switch light/dark mode
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.system,
         home: AuthWrapper(),
       ),
     );
