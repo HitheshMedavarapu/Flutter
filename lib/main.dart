@@ -3,39 +3,40 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 import 'firebase_options.dart';
-import 'redux/app_state.dart';
-import 'redux/reducers.dart';
+import 'redux/store.dart'; // Import the existing Redux store
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/profile/profile_screen.dart'; // Ensure profile screen is routed
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  final store = Store<AppState>(
-    appReducer,
-    initialState: AppState.initialState(),
-  );
-
-  runApp(MyApp(store));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final Store<AppState> store;
-  const MyApp(this.store, {Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
-    return StoreProvider(
-      store: store,
+    return StoreProvider<AppState>(
+      store: store, // Provide the Redux store globally
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Unif1',
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
         themeMode: ThemeMode.system,
-        home: AuthWrapper(),
+        home: StoreConnector<AppState, AppState>(
+          converter: (store) => store.state,
+          builder: (context, state) =>
+              AuthWrapper(), // Ensure Redux is available here
+        ),
+        routes: {
+          '/home': (context) => const HomeScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/profile': (context) => const ProfileScreen(),
+        },
       ),
     );
   }

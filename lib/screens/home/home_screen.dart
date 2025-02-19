@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../chats/chats_screen.dart';
 import '../group_chats/group_chats_screen.dart';
 import '../marketplace/marketplace_screen.dart';
 import '../maps/maps_screen.dart';
 import 'feed_screen.dart';
+import '../profile/profile_screen.dart'; // Import profile screen
 import 'package:flutter_redux/flutter_redux.dart';
 import '../../redux/auth/auth_state.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key})
-      : super(key: key); // Ensure constructor is marked as const
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -44,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+      MaterialPageRoute(builder: (context) => ProfileScreen()),
     );
   }
 
@@ -59,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
+            icon: const Icon(Icons.person), // Profile icon
             onPressed: _openProfile,
           ),
         ],

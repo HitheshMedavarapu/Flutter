@@ -1,8 +1,10 @@
+import 'package:firebase1/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import '../../redux/app_state.dart';
-import '../../redux/actions.dart';
+import '../../redux/store.dart';
+import '../../redux/auth/auth_actions.dart';
 import '../home/home_screen.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
@@ -19,14 +21,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>(); // ✅ Form key for validation
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _isLoading = false;
 
   void _login(BuildContext context) async {
-    if (!_formKey.currentState!.validate()) return; // ✅ Stop if invalid
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
@@ -36,12 +38,29 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      StoreProvider.of<AppState>(context)
-          .dispatch(SetUserAction(userCredential.user!.uid));
-      StoreProvider.of<AppState>(context).dispatch(fetchUserProfile);
+      User? user = userCredential.user;
+      if (user != null) {
+        // Fetch user profile from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
 
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+        if (userDoc.exists) {
+          var userData = userDoc.data() as Map<String, dynamic>;
+
+          // Dispatch action to store user data in Redux
+          StoreProvider.of<AppState>(context).dispatch(SetUserAction(
+            UserModel.fromMap(userData),
+          ));
+
+          // Navigate to HomeScreen
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()));
+        } else {
+          showCustomSnackbar(context, "User profile not found", isError: true);
+        }
+      }
     } on FirebaseAuthException catch (e) {
       showCustomSnackbar(context, e.message ?? "Login failed", isError: true);
     } finally {
@@ -64,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Form(
-                  key: _formKey, // ✅ Wrap in Form
+                  key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -125,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const SignupScreen())),
+                                builder: (context) => SignupScreen())),
                         child: const Text("Don't have an account? Sign Up"),
                       ),
                     ],

@@ -1,88 +1,73 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:redux/redux.dart';
-import 'app_state.dart';
+import 'app_state.dart' as app; // ✅ Ensuring alias is correctly defined
+import 'profile/profile_state.dart' as profile; // ✅ Alias ProfileState
 
-// Authentication Actions
+// 🔹 Authentication Actions
 class SetUserAction {
   final String? userId;
   SetUserAction(this.userId);
 }
 
-// User Profile Actions
+// 🔹 User Profile Actions
 class SetUserProfileAction {
-  final Map<String, dynamic> userProfile;
-  SetUserProfileAction(this.userProfile);
+  final profile.ProfileState profileState;
+  SetUserProfileAction(this.profileState);
 }
 
-Future<void> fetchUserProfile(Store<AppState> store) async {
+Future<void> fetchUserProfile(Store<app.AppState> store) async {
+  print("📌 Redux: Fetching user profile...");
+
   User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .get();
-    if (userDoc.exists) {
-      store.dispatch(
-          SetUserProfileAction(userDoc.data() as Map<String, dynamic>));
+  if (user == null) {
+    print("❌ No authenticated user found.");
+    return;
+  }
+
+  String uid = user.uid;
+  print("✅ Firebase UID: $uid");
+
+  try {
+    DocumentSnapshot<Map<String, dynamic>> userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+    if (userDoc.exists && userDoc.data() != null) {
+      if (userDoc.exists && userDoc.data() != null) {
+        print("✅ Firestore Data Retrieved: ${userDoc.data()}");
+      } else {
+        print("❌ Firestore user document NOT FOUND for UID: $uid");
+      }
+      var data = userDoc.data()!;
+      profile.ProfileState profileData = profile.ProfileState(
+        uid: uid,
+        name: data['name'] ?? "No Name",
+        email: data['email'] ?? "No Email",
+        profilePicture: data['profilePicture'] ?? "",
+        city: data['city'] ?? "No City",
+        college: data['college'] ?? "No College",
+        interests: (data['interests'] as List?)?.cast<String>() ?? [],
+        preferences: (data['preferences'] as List?)?.cast<String>() ?? [],
+      );
+
+      print("✅ Dispatching Redux Action for Profile: $profileData");
+      store.dispatch(SetUserProfileAction(profileData));
+      print("✅ Profile successfully dispatched to Redux store.");
+    } else {
+      print("❌ Firestore user document not found!");
     }
+  } catch (e) {
+    print("❌ Error Fetching Profile: $e");
   }
 }
 
-// Chats Actions
-class SetChatsAction {
-  final List<Map<String, dynamic>> chats;
-  SetChatsAction(this.chats);
-}
+// 🔹 Logout Action
+class LogoutAction {}
 
-Future<void> fetchChats(Store<AppState> store) async {
-  String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
-  if (currentUserId == null) return;
+Future<void> logoutUser(Store<app.AppState> store) async {
+  print("📌 Logging Out...");
+  await FirebaseAuth.instance.signOut();
+  print("✅ User Signed Out");
 
-  QuerySnapshot snapshot = await FirebaseFirestore.instance
-      .collection('chats')
-      .where('users', arrayContains: currentUserId)
-      .orderBy('lastMessageTime', descending: true)
-      .get();
-
-  List<Map<String, dynamic>> chatList =
-      snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-
-  store.dispatch(SetChatsAction(chatList));
-}
-
-// Marketplace Actions
-class SetMarketplaceAction {
-  final List<Map<String, dynamic>> marketplace;
-  SetMarketplaceAction(this.marketplace);
-}
-
-Future<void> fetchMarketplace(Store<AppState> store) async {
-  QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection('marketplace').get();
-  List<Map<String, dynamic>> marketplaceItems =
-      snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-
-  store.dispatch(SetMarketplaceAction(marketplaceItems));
-}
-
-// Theme Mode Actions
-class SetThemeModeAction {
-  final bool darkMode;
-  SetThemeModeAction(this.darkMode);
-}
-
-// Settings Actions
-class SetNotificationsAction {
-  final bool chatNotifications;
-  final bool groupChatNotifications;
-  final bool suggestions;
-  final bool promotions;
-
-  SetNotificationsAction({
-    required this.chatNotifications,
-    required this.groupChatNotifications,
-    required this.suggestions,
-    required this.promotions,
-  });
+  store.dispatch(LogoutAction());
 }

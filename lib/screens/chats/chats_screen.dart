@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'chat_screen.dart';
+import 'chat_message_screen.dart';
+import 'buddies_screen.dart'; // Import Buddies Screen
 
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({Key? key}) : super(key: key);
@@ -11,7 +12,20 @@ class ChatsScreen extends StatelessWidget {
     final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? "";
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Chats")),
+      appBar: AppBar(
+        title: const Text("Chats"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.group_add), // Buddy icon
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BuddiesScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('chats')
@@ -59,12 +73,12 @@ class ChatsScreen extends StatelessWidget {
                     title: Text(userData['name'] ?? 'Unknown'),
                     subtitle:
                         Text(chatData['lastMessage'] ?? 'No messages yet'),
-                    trailing: chatData['unreadCount'] > 0
+                    trailing: chatData['unreadCount'][currentUserId] > 0
                         ? CircleAvatar(
                             radius: 12,
                             backgroundColor: Colors.red,
                             child: Text(
-                              chatData['unreadCount'].toString(),
+                              chatData['unreadCount'][currentUserId].toString(),
                               style: const TextStyle(
                                   color: Colors.white, fontSize: 12),
                             ),
@@ -74,8 +88,11 @@ class ChatsScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              ChatScreen(chatId: chatId, userId: otherUserId),
+                          builder: (context) => ChatMessageScreen(
+                            chatId: chatId,
+                            userId: otherUserId,
+                            chatTitle: userData['name'] ?? 'Chat',
+                          ),
                         ),
                       );
                     },

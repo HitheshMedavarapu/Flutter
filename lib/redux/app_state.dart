@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
+import 'profile/profile_state.dart' as profile; // ✅ Fix Import
 
 class AppState {
   final String? userId;
-  final Map<String, dynamic>? userProfile;
+  final profile.ProfileState profileState; // ✅ Include ProfileState
   final List<Map<String, dynamic>> chats;
-  final List<Map<String, dynamic>> groupChats;
   final List<Map<String, dynamic>> marketplace;
   final bool darkMode;
   final bool chatNotifications;
@@ -14,9 +13,8 @@ class AppState {
 
   AppState({
     required this.userId,
-    required this.userProfile,
+    required this.profileState,
     required this.chats,
-    required this.groupChats,
     required this.marketplace,
     required this.darkMode,
     required this.chatNotifications,
@@ -27,9 +25,8 @@ class AppState {
 
   AppState.initialState()
       : userId = null,
-        userProfile = null,
+        profileState = profile.ProfileState.initial(), // ✅ Fix Profile Default
         chats = [],
-        groupChats = [],
         marketplace = [],
         darkMode = false,
         chatNotifications = true,
@@ -39,9 +36,8 @@ class AppState {
 
   AppState copyWith({
     String? userId,
-    Map<String, dynamic>? userProfile,
+    profile.ProfileState? profileState,
     List<Map<String, dynamic>>? chats,
-    List<Map<String, dynamic>>? groupChats,
     List<Map<String, dynamic>>? marketplace,
     bool? darkMode,
     bool? chatNotifications,
@@ -51,9 +47,8 @@ class AppState {
   }) {
     return AppState(
       userId: userId ?? this.userId,
-      userProfile: userProfile ?? this.userProfile,
+      profileState: profileState ?? this.profileState,
       chats: chats ?? this.chats,
-      groupChats: groupChats ?? this.groupChats,
       marketplace: marketplace ?? this.marketplace,
       darkMode: darkMode ?? this.darkMode,
       chatNotifications: chatNotifications ?? this.chatNotifications,
